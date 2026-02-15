@@ -1,0 +1,20 @@
+[
+  {
+    "report_date": "2022-02-01T00:00:00.000",
+    "leveraged_net_position": 0,
+    "leveraged_long": 0,
+    "leveraged_short": 0,
+    "open_interest": 3932501,
+    "prev_net_position": 0,
+    "net_change_pct": null
+  },
+  {
+    "report_date": "2026-02-10",
+    "leveraged_net_position": -2030917,
+    "leveraged_long": 424385,
+    "leveraged_short": 2455302,
+    "open_interest": 5500736,
+    "prev_net_position": -2089125,
+    "net_change_pct": 2.79
+  }
+]

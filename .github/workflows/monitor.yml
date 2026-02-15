@@ -1,0 +1,51 @@
+name: Leverage Risk Monitor
+
+on:
+  schedule:
+    # 일간 브리핑: 평일 오전 9시 KST = UTC 00:00
+    - cron: '0 0 * * 1-5'
+    # 장마감 업데이트: 오후 11시 KST = UTC 14:00
+    - cron: '0 14 * * 1-5'
+    # 주간 리포트: 토요일 오전 10시 KST = UTC 01:00
+    - cron: '0 1 * * 6'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행 모드 (daily / update / weekly)'
+        required: false
+        default: 'daily'
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "${{ github.event.inputs.mode }}" ]; then
+            python run_local.py ${{ github.event.inputs.mode }}
+          else
+            python -c "from src.main import main; main()"
+          fi
+
+      - name: Commit data updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "data: update $(date -u +%Y-%m-%d)"
+          git push
