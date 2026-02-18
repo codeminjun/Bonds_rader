@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.storage.json_store import load_alert_state, save_alert_state
 
@@ -11,12 +11,13 @@ def is_alert_active(alert_type: str) -> bool:
 
 def activate_alert(alert_type: str, message: str) -> bool:
     """알림 활성화. 이미 활성 상태면 False 반환 (중복 방지)."""
-    if is_alert_active(alert_type):
+    state = load_alert_state()
+    entry = state.get(alert_type)
+    if entry and entry.get("resolved_at") is None:
         return False  # 이미 활성 → 발송 안 함
 
-    state = load_alert_state()
     state[alert_type] = {
-        "triggered_at": datetime.utcnow().isoformat(),
+        "triggered_at": datetime.now(timezone.utc).isoformat(),
         "resolved_at": None,
         "message": message,
     }
@@ -32,7 +33,7 @@ def resolve_alert(alert_type: str) -> bool:
     if state[alert_type].get("resolved_at") is not None:
         return False  # 이미 해제됨
 
-    state[alert_type]["resolved_at"] = datetime.utcnow().isoformat()
+    state[alert_type]["resolved_at"] = datetime.now(timezone.utc).isoformat()
     save_alert_state(state)
     return True  # 해제됨 → 복귀 메시지 발송
 
