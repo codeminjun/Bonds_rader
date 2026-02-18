@@ -11,15 +11,6 @@ def _weekday_kr(date_str: str) -> str:
     return days[dt.weekday()]
 
 
-def _format_change(current: float, prev: float | None, unit: str = "") -> str:
-    """전일 대비 변동 포맷."""
-    if prev is None:
-        return ""
-    diff = current - prev
-    arrow = "▲" if diff > 0 else "▼" if diff < 0 else "―"
-    return f"(전일 {prev:+.0f}{unit} {arrow})" if unit == "bp" else f"(전일 대비 {diff:+.1f}% {arrow})"
-
-
 def build_daily_briefing(rate_data: dict | None, move_data: dict | None) -> dict:
     """일간 브리핑 Embed 생성. 일부 데이터 누락 시에도 동작."""
     date = (rate_data or move_data or {}).get("date", "N/A")
@@ -140,7 +131,7 @@ def build_move_update(move_data: dict) -> dict:
     """장마감 MOVE 업데이트 Embed."""
     color = determine_risk_color(None, move_data["move_index"])
     pct = move_data.get("change_pct", 0)
-    arrow = "▲" if pct > 0 else "▼"
+    arrow = "▲" if pct > 0 else "▼" if pct < 0 else "―"
 
     return {
         "embeds": [{
