@@ -35,9 +35,10 @@ jobs:
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_MODE: ${{ github.event.inputs.mode }}
         run: |
-          if [ -n "${{ github.event.inputs.mode }}" ]; then
-            python run_local.py ${{ github.event.inputs.mode }}
+          if [ -n "$RUN_MODE" ]; then
+            python run_local.py "$RUN_MODE"
           else
             python -c "from src.main import main; main()"
           fi
