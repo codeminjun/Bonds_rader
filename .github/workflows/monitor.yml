@@ -2,10 +2,10 @@ name: Leverage Risk Monitor
 
 on:
   schedule:
-    # 일간 브리핑: 평일 오전 9시 KST = UTC 00:00
-    - cron: '0 0 * * 1-5'
-    # 장마감 업데이트: 오후 11시 KST = UTC 14:00
-    - cron: '0 14 * * 1-5'
+    # 일간 브리핑: 평일 밤 10시 KST = UTC 13:00 (미국 ET 08:00, SOFR 발표 후 + 장 개장 전)
+    - cron: '0 13 * * 1-5'
+    # 장마감 업데이트: 평일 아침 7시 KST = UTC 22:00 전일 (미국 ET 17:00, 장마감 후)
+    - cron: '0 22 * * 1-5'
     # 주간 리포트: 토요일 오전 10시 KST = UTC 01:00
     - cron: '0 1 * * 6'
   workflow_dispatch:

@@ -8,7 +8,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.collectors.sofr import collect_sofr
 from src.collectors.move import collect_move
 from src.collectors.cot import collect_cot
-from src.storage.json_store import get_weekly_rates, get_weekly_moves, get_latest_cot
+from src.storage.json_store import (
+    get_weekly_rates, get_weekly_moves, get_latest_cot,
+    get_latest_rate, get_latest_move,
+)
 from src.alerts.thresholds import (
     check_sofr_spread, check_move, check_move_intraday,
     check_cot_change, check_composite,
@@ -90,26 +93,39 @@ def run_daily_briefing(dry_run: bool = False) -> None:
 
     rate_data = None
     move_data = None
+    has_new_data = False
 
     try:
         rate_data = collect_sofr()
         if rate_data:
+            has_new_data = True
             print(f"  SOFR: {rate_data['sofr']:.2f}%, IORB: {rate_data['iorb']:.2f}%, 스프레드: {rate_data['spread_bp']:+.0f}bp")
+        else:
+            # 새 데이터 없으면 저장소에서 최신 데이터로 브리핑 구성
+            rate_data = get_latest_rate()
+            if rate_data:
+                print(f"  SOFR: 저장된 데이터 사용 ({rate_data['date']})")
     except Exception as e:
         print(f"  [ERROR] SOFR 수집 실패: {e}")
 
     try:
         move_data = collect_move()
         if move_data:
+            has_new_data = True
             print(f"  MOVE: {move_data['move_index']:.1f} ({move_data.get('change_pct', 'N/A')}%)")
+        else:
+            # 새 데이터 없으면 저장소에서 최신 데이터로 브리핑 구성
+            move_data = get_latest_move()
+            if move_data:
+                print(f"  MOVE: 저장된 데이터 사용 ({move_data['date']})")
     except Exception as e:
         print(f"  [ERROR] MOVE 수집 실패: {e}")
 
-    if rate_data is None and move_data is None:
+    if not has_new_data:
         print("[일간 브리핑] 새 데이터 없음 — 브리핑 미발송")
         return
 
-    # 일간 브리핑 발송 — 새 데이터가 있는 항목만 포함
+    # 일간 브리핑 발송 — 새 데이터 + 저장소 fallback 포함
     payload = build_daily_briefing(rate_data, move_data)
     send_discord_message(payload, dry_run=dry_run)
 
@@ -191,11 +207,11 @@ def determine_mode() -> str:
     # 토요일 UTC 01:00 → 주간 리포트
     if weekday == 5 and hour <= 2:
         return "weekly"
-    # 평일 UTC 14:00 → 장마감 업데이트
-    if weekday < 5 and 13 <= hour <= 15:
+    # 평일 UTC 22:00 (KST 07:00) → 장마감 업데이트
+    if weekday < 5 and 21 <= hour <= 23:
         return "update"
-    # 평일 UTC 00:00 → 일간 브리핑
-    if weekday < 5:
+    # 평일 UTC 13:00 (KST 22:00) → 일간 브리핑
+    if weekday < 5 and 12 <= hour <= 14:
         return "daily"
 
     return "daily"  # 기본값
