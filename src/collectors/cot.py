@@ -1,19 +1,18 @@
-import requests
-
 from src.storage.json_store import save_weekly_cot, get_latest_cot
+from src.http_client import request_with_retry
 
 
 CFTC_API_URL = "https://publicreporting.cftc.gov/resource/gpe5-46if.json"
 
 
-def collect_cot() -> dict:
-    """CFTC Socrata API에서 10-Year Treasury COT 데이터를 수집하고 저장."""
+def collect_cot() -> dict | None:
+    """CFTC Socrata API에서 10-Year Treasury COT 데이터를 수집하고 저장. 새 데이터가 없으면 None 반환."""
     params = {
         "contract_market_name": "UST 10Y NOTE",
         "$order": "report_date_as_yyyy_mm_dd DESC",
         "$limit": 2,  # 최신 2건 (현재 + 전주)
     }
-    resp = requests.get(CFTC_API_URL, params=params, timeout=30)
+    resp = request_with_retry("GET", CFTC_API_URL, params=params)
     resp.raise_for_status()
     data = resp.json()
 
@@ -22,6 +21,12 @@ def collect_cot() -> dict:
 
     latest = data[0]
     report_date = latest["report_date_as_yyyy_mm_dd"][:10]  # "2026-02-10T00:00:00.000" → "2026-02-10"
+
+    # 이미 저장된 최신 데이터와 날짜가 같으면 새 데이터 없음
+    stored = get_latest_cot()
+    if stored and stored["report_date"] == report_date:
+        print(f"  [SKIP] COT: 새 데이터 없음 (최신 저장 날짜: {report_date})")
+        return None
 
     lev_long = int(latest.get("lev_money_positions_long", 0))
     lev_short = int(latest.get("lev_money_positions_short", 0))

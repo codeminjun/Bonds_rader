@@ -93,21 +93,23 @@ def run_daily_briefing(dry_run: bool = False) -> None:
 
     try:
         rate_data = collect_sofr()
-        print(f"  SOFR: {rate_data['sofr']:.2f}%, IORB: {rate_data['iorb']:.2f}%, 스프레드: {rate_data['spread_bp']:+.0f}bp")
+        if rate_data:
+            print(f"  SOFR: {rate_data['sofr']:.2f}%, IORB: {rate_data['iorb']:.2f}%, 스프레드: {rate_data['spread_bp']:+.0f}bp")
     except Exception as e:
         print(f"  [ERROR] SOFR 수집 실패: {e}")
 
     try:
         move_data = collect_move()
-        print(f"  MOVE: {move_data['move_index']:.1f} ({move_data.get('change_pct', 'N/A')}%)")
+        if move_data:
+            print(f"  MOVE: {move_data['move_index']:.1f} ({move_data.get('change_pct', 'N/A')}%)")
     except Exception as e:
         print(f"  [ERROR] MOVE 수집 실패: {e}")
 
     if rate_data is None and move_data is None:
-        print("[일간 브리핑] 모든 데이터 수집 실패 — 브리핑 미발송")
+        print("[일간 브리핑] 새 데이터 없음 — 브리핑 미발송")
         return
 
-    # 일간 브리핑 발송 (무조건) — 수집 성공한 데이터만 포함
+    # 일간 브리핑 발송 — 새 데이터가 있는 항목만 포함
     payload = build_daily_briefing(rate_data, move_data)
     send_discord_message(payload, dry_run=dry_run)
 
@@ -122,6 +124,11 @@ def run_move_update(dry_run: bool = False) -> None:
     print("[장마감 업데이트] MOVE 수집 시작...")
 
     move_data = collect_move()
+
+    if move_data is None:
+        print("[장마감 업데이트] 새 데이터 없음 — 업데이트 미발송")
+        return
+
     print(f"  MOVE: {move_data['move_index']:.1f} ({move_data.get('change_pct', 'N/A')}%)")
 
     # 변동률 기준 충족 시에만 업데이트 발송
@@ -143,12 +150,17 @@ def run_weekly_report(dry_run: bool = False) -> None:
     print("[주간 리포트] 데이터 수집 시작...")
 
     cot_data = collect_cot()
+
+    if cot_data is None:
+        print("[주간 리포트] 새 COT 데이터 없음 — 리포트 미발송")
+        return
+
     print(f"  COT Net: {cot_data['leveraged_net_position']:,} ({cot_data.get('net_change_pct', 'N/A')}%)")
 
     weekly_rates = get_weekly_rates(5)
     weekly_moves = get_weekly_moves(5)
 
-    # 주간 리포트 발송 (무조건)
+    # 주간 리포트 발송
     payload = build_weekly_report(weekly_rates, weekly_moves, cot_data)
     send_discord_message(payload, dry_run=dry_run)
 

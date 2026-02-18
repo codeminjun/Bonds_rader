@@ -1,10 +1,10 @@
 import yfinance as yf
 
-from src.storage.json_store import save_daily_move, get_prev_move
+from src.storage.json_store import save_daily_move, get_prev_move, get_latest_move
 
 
-def collect_move() -> dict:
-    """yfinance로 MOVE 지수 최신 데이터를 수집하고 저장. 결과 dict 반환."""
+def collect_move() -> dict | None:
+    """yfinance로 MOVE 지수 최신 데이터를 수집하고 저장. 새 데이터가 없으면 None 반환."""
     ticker = yf.Ticker("^MOVE")
     hist = ticker.history(period="5d")
 
@@ -13,6 +13,12 @@ def collect_move() -> dict:
 
     latest_date = hist.index[-1].strftime("%Y-%m-%d")
     latest_close = round(float(hist["Close"].iloc[-1]), 2)
+
+    # 이미 저장된 최신 데이터와 날짜가 같으면 새 데이터 없음
+    stored = get_latest_move()
+    if stored and stored["date"] == latest_date:
+        print(f"  [SKIP] MOVE: 새 데이터 없음 (최신 저장 날짜: {latest_date})")
+        return None
 
     # 전일 종가
     prev_close = None
