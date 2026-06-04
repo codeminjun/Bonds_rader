@@ -460,5 +460,11 @@
     "move_index": 73.58,
     "prev_close": 73.43,
     "change_pct": 0.2
+  },
+  {
+    "date": "2026-06-04",
+    "move_index": 71.16,
+    "prev_close": 73.58,
+    "change_pct": -3.29
   }
 ]
