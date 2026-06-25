@@ -524,8 +524,8 @@
   {
     "date": "2026-06-18",
     "move_index": 65.39,
-    "prev_close": 70.66,
-    "change_pct": -7.46
+    "prev_close": null,
+    "change_pct": null
   },
   {
     "date": "2026-06-22",
