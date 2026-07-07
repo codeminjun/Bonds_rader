@@ -586,5 +586,11 @@
     "move_index": 65.76,
     "prev_close": 65.4,
     "change_pct": 0.55
+  },
+  {
+    "date": "2026-07-07",
+    "move_index": 70.25,
+    "prev_close": 65.4,
+    "change_pct": 7.42
   }
 ]
