@@ -578,8 +578,8 @@
   {
     "date": "2026-07-02",
     "move_index": 65.4,
-    "prev_close": 68.56,
-    "change_pct": -4.61
+    "prev_close": null,
+    "change_pct": null
   },
   {
     "date": "2026-07-06",
