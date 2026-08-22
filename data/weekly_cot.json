@@ -25,5 +25,14 @@
     "open_interest": 5458890,
     "prev_net_position": -2231670,
     "net_change_pct": 3.05
+  },
+  {
+    "report_date": "2026-08-18",
+    "leveraged_net_position": -2229013,
+    "leveraged_long": 352319,
+    "leveraged_short": 2581332,
+    "open_interest": 5596739,
+    "prev_net_position": -2163714,
+    "net_change_pct": -3.02
   }
 ]
