@@ -988,5 +988,11 @@
     "move_index": 99.72,
     "prev_close": 102.56,
     "change_pct": -2.77
+  },
+  {
+    "date": "2026-10-09",
+    "move_index": 98.99,
+    "prev_close": 100.7,
+    "change_pct": -1.7
   }
 ]
